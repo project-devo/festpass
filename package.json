@@ -1,0 +1,7 @@
+{
+  "name": "festpass",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {"node": ">=20.0"}
+}
