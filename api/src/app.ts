@@ -1,9 +1,10 @@
+import type { Role } from "./auth/guards";
 import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import fastifyJwt from "@fastify/jwt";
 import { authRoutes } from "./routes/auth";
 
-type Role = "student" | "organiser" | "volunteer";
+
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
@@ -26,3 +27,7 @@ export function buildApp() {
 
   return app;
 }
+
+
+
+

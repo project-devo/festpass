@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db/client";
 import { users } from "../db/schema";
+import { requireAuth } from "../auth/guards";
 
 const isProd = process.env.NODE_ENV === "production";
 const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
@@ -78,12 +79,5 @@ export async function authRoutes(app: FastifyInstance) {
     return { ok: true };
   });
 
-  app.get("/auth/me", async (request, reply) => {
-    try {
-      await request.jwtVerify();
-    } catch {
-      return reply.code(401).send({ error: "Not logged in" });
-    }
-    return request.user;
-  });
+   app.get("/auth/me", { preHandler: requireAuth }, async (request) => request.user);
 }
