@@ -1,3 +1,10 @@
 packages:
   - 'web'
   - 'api'
+allowBuilds:
+  builds: true
+permissions:
+  builds:
+    skills: true
+  esbuild:
+    build: true
