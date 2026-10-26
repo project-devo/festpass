@@ -3,6 +3,9 @@ import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import fastifyJwt from "@fastify/jwt";
 import { authRoutes } from "./routes/auth";
+import { eventRoutes } from "./routes/events";
+import { meRoutes } from "./routes/me";
+
 
 
 
@@ -24,6 +27,8 @@ export function buildApp() {
 
   app.get("/health", async () => ({ status: "ok" }));
   app.register(authRoutes);
+  app.register(eventRoutes);
+  app.register(meRoutes);
 
   return app;
 }
