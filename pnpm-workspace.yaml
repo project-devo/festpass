@@ -8,3 +8,5 @@ permissions:
     skills: true
   esbuild:
     build: true
+  unrs-resolver:
+    build: true
