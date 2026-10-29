@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { useSession } from "@/components/session";
 import { Alert, Button, Card, Input } from "@/components/ui";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refresh } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +20,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await api.login(email, password);
+      await refresh();
       router.push("/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");

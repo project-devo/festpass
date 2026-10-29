@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { useSession } from "@/components/session";
 import { Alert, Button, Card, Input } from "@/components/ui";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { refresh } = useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,6 +21,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await api.register(name, email, password);
+      await refresh();
       router.push("/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
