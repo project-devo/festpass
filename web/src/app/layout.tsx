@@ -29,12 +29,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <SessionProvider>
-          <Suspense fallback={null}>
+        {/* One boundary around everything that reads the session or the URL, so it all hydrates together */}
+        <Suspense fallback={<PageState loading />}>
+          <SessionProvider>
             <TopBar />
-          </Suspense>
-          <Suspense fallback={<PageState loading />}>{children}</Suspense>
-        </SessionProvider>
+            {children}
+          </SessionProvider>
+        </Suspense>
       </body>
     </html>
   );

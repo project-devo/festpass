@@ -83,3 +83,4 @@ export const api = {
   createEvent: (input: NewEvent) => request<FestEvent>("/events", { method: "POST", body: input }),
   getMyBookings: () => request<Booking[]>("/me/bookings"),
 };
+
