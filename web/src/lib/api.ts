@@ -78,6 +78,7 @@ export const api = {
     request<User>("/auth/register", { method: "POST", body: { name, email, password } }),
   logout: () => request<{ ok: true }>("/auth/logout", { method: "POST" }),
   getEvents: () => request<FestEvent[]>("/events"),
+  bookEvent: (id: string) => request<{ id: string }>(`/events/${id}/book`, { method: "POST" }),
   getEvent: (id: string) => request<FestEvent>(`/events/${id}`),
   createEvent: (input: NewEvent) => request<FestEvent>("/events", { method: "POST", body: input }),
   getMyBookings: () => request<Booking[]>("/me/bookings"),

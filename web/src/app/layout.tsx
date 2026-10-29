@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SessionProvider } from "@/components/session";
 import { TopBar } from "@/components/top-bar";
+import { PageState } from "@/components/ui";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,8 +30,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SessionProvider>
-          <TopBar />
-          {children}
+          <Suspense fallback={null}>
+            <TopBar />
+          </Suspense>
+          <Suspense fallback={<PageState loading />}>{children}</Suspense>
         </SessionProvider>
       </body>
     </html>
