@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { api, type FestEvent } from "@/lib/api";
+import { EventCard } from "@/components/event-card";
+import { Card, PageState } from "@/components/ui";
 
-export default function Home() {
+export default function EventsPage() {
   const [events, setEvents] = useState<FestEvent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,17 +16,26 @@ export default function Home() {
       .catch((err) => setError(err instanceof Error ? err.message : "Something went wrong"));
   }, []);
 
-  if (error) return <p className="p-8 text-red-600">{error}</p>;
-  if (!events) return <p className="p-8">Loading...</p>;
-
   return (
-    <main className="p-8">
-      <h1 className="text-xl font-semibold">{events.length} events from the API</h1>
-      <ul className="mt-4 list-disc pl-6">
-        {events.map((e) => (
-          <li key={e.id}>{e.title}</li>
-        ))}
-      </ul>
+    <main className="mx-auto max-w-5xl px-4 py-8">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Events</h1>
+        <p className="mt-1 text-sm text-slate-600">Pick an event to see the details and book a pass.</p>
+      </div>
+
+      {error || !events ? (
+        <PageState loading={!events} error={error} />
+      ) : events.length === 0 ? (
+        <Card className="text-center text-sm text-slate-600">No events yet. Check back soon.</Card>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {events.map((event) => (
+            <li key={event.id}>
+              <EventCard event={event} />
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }
