@@ -34,6 +34,9 @@ export default function EventPage() {
     } catch (err) {
       setBookError(err instanceof ApiError ? err.message : "Something went wrong");
       setBooking(false);
+      if (err instanceof ApiError && err.status === 409) {
+        api.getEvent(id).then(setEvent).catch(() => {});
+      }
     }
   }
 

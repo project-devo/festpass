@@ -1,17 +1,10 @@
-import { createHmac, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { sql } from "drizzle-orm";
 import { db, pool } from "./client";
 import { bookings, checkins, events, users } from "./schema";
 
-const qrSecret = process.env.QR_SECRET;
-if (!qrSecret) throw new Error("QR_SECRET is missing in api/.env");
-
-// Ticket token = booking id + "." + HMAC signature of that id
-const signTicket = (bookingId: string): string => {
-  const signature = createHmac("sha256", qrSecret).update(bookingId).digest("base64url");
-  return `${bookingId}.${signature}`;
-};
+import { signTicket } from "../tickets";
 
 // A date `days` from now at the given hour (UTC), so events are always in the future
 function daysFromNow(days: number, hour: number): Date {

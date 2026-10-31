@@ -28,3 +28,17 @@
 - requireAuth / requireRole preHandlers: 401 when not logged in, 403 when the role isn't allowed.
 - Every request body and URL id is checked with Zod; bad input gets a 400 before touching the database.
 - CORS allows only WEB_ORIGIN, with credentials. Unknown errors return a plain 500 and are logged, never sent to the client.
+- Booking (Goal 6): POST /events/:id/book runs one transaction. Step 1 is
+  `UPDATE events SET seats_left = seats_left - 1 WHERE id = $1 AND seats_left > 0 RETURNING seats_left`.
+  No row back = 409 Sold out (or 404 if the event doesn't exist). Step 2 inserts the booking;
+  if one_active_booking_per_user fires (Postgres 23505) the transaction rolls back, the seat is
+  given back, and the answer is 409 Already booked.
+- Why an atomic UPDATE and not "read seats, then write": with read-then-write, two requests can
+  both read seats_left = 1 before either writes, and both book (oversell). The single UPDATE locks
+  the event row; the second request waits, re-checks seats_left > 0 on the new value, and gets no row.
+- Why not a Redis lock: it adds a second system that can fail or expire mid-booking, while Postgres
+  already gives row locks inside the transaction. One fewer moving part.
+- The booking id is made in the API (randomUUID) so the qr_token (id + HMAC with QR_SECRET) can be
+  signed before the insert. signTicket lives in api/src/tickets.ts, shared with the seed.
+- Race check (api/scripts/race.ts, `pnpm --filter api race`): 20 students book a fresh 1-seat event
+  at once. Local result 2026-10-31: 1 x 201 Booked, 19 x 409 Sold out, seats_left 0.
