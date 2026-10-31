@@ -82,5 +82,7 @@ export const api = {
   getEvent: (id: string) => request<FestEvent>(`/events/${id}`),
   createEvent: (input: NewEvent) => request<FestEvent>("/events", { method: "POST", body: input }),
   getMyBookings: () => request<Booking[]>("/me/bookings"),
+    cancelBooking: (id: string) =>
+    request<{ id: string; status: "cancelled"; seatsLeft: number }>(`/me/bookings/${id}/cancel`, { method: "POST" }),
 };
 
