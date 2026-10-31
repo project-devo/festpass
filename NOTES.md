@@ -42,3 +42,35 @@
   signed before the insert. signTicket lives in api/src/tickets.ts, shared with the seed.
 - Race check (api/scripts/race.ts, `pnpm --filter api race`): 20 students book a fresh 1-seat event
   at once. Local result 2026-10-31: 1 x 201 Booked, 19 x 409 Sold out, seats_left 0.
+
+
+
+  ## QR tickets and cancelling (Goal 7)
+
+- Ticket token = booking id + "." + HMAC-SHA256(booking id, QR_SECRET), base64url. Only the server knows QR_SECRET, so a forged or edited token fails the check at the gate (Goal 9). A plain booking id would be guessable from any leaked ticket and couldn't be checked offline.
+- The QR image is drawn in the browser with `qrcode` (toDataURL), so the API sends only the ~80-character token, not an image. Goal 8's email will draw the same token on the server.
+- Cancel = one transaction: UPDATE bookings SET status='cancelled' WHERE id, owner, status='confirmed' AND no check-in exists, then seats_left + 1. If the first UPDATE matches nothing, nothing else runs, so a seat can't be given back twice. CHECK seats_left <= capacity is the backstop.
+- Someone else's booking id returns 404, not 403, so ids can't be probed. A checked-in ticket can't be cancelled (409).
+- Cancelling frees the student to book the same event again, because the unique index only covers status='confirmed'.
+
+
+- Ticket email (Goal 8): after the booking transaction commits, the route queues a
+  `send-ticket` job in pg-boss with only the booking id, then returns 201 straight away.
+  A worker in the same API process loads the booking, draws the QR (qrcode.toBuffer) and
+  sends it with Resend as an inline + attached PNG.
+- Why a queue: booking must stay fast and must not fail because email is slow or down.
+  Resend takes a few hundred ms and can error; inside the request that would delay or
+  break booking. Queueing is one insert; if even that fails, it is logged and the booking
+  still stands (the QR is on My tickets anyway).
+- Queued after commit, not inside the transaction, so a rolled-back booking (Sold out,
+  Already booked) never gets an email.
+- Retries: retryLimit 3 with retryDelay 30s and exponential backoff. A Resend error is
+  thrown so pg-boss retries it; every failed attempt is logged with the booking id.
+  The worker re-reads the booking, so a ticket cancelled before sending is skipped.
+- Why pg-boss and not BullMQ: pg-boss keeps jobs in Postgres (its own pgboss schema in
+  Neon), so there is no Redis to run for the queue, and jobs survive restarts.
+- Demo email mode: without a verified domain, Resend's free tier only delivers to the
+  account owner's address, and seeded users use @festpass.test. TICKET_EMAIL_TO sends
+  every ticket to that one inbox; unset it once a domain is verified.
+- pg-boss 12 is ESM-only; the API is CommonJS and loads it through Node's require(esm)
+  (Node 22.12+, Render runs Node 24).

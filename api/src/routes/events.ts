@@ -6,6 +6,7 @@ import { requireRole } from "../auth/guards";
 import { db } from "../db/client";
 import { bookings, events } from "../db/schema";
 import { signTicket } from "../tickets";
+import { queueTicketEmail } from "../queue";
 
 const eventParams = z.object({ id: z.uuid() });
 
@@ -96,6 +97,13 @@ export async function eventRoutes(app: FastifyInstance) {
         await tx.insert(bookings).values({ id, userId, eventId, qrToken: signTicket(id) });
         return { id, seatsLeft: seat.seatsLeft };
       });
+
+            // The booking is committed. Queue the email; if queueing fails, the booking still stands.
+      try {
+        await queueTicketEmail(booking.id);
+      } catch (err) {
+        request.log.error({ err, bookingId: booking.id }, "could not queue ticket email");
+      }
 
       reply.code(201);
       return booking;
