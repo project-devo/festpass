@@ -88,3 +88,28 @@
   free tier. Stretch 3 replaces it with Socket.IO pushes.
 - Live test 2026-11-01: Battle of the Bands went 5/10 -> 6/10 on the laptop within one
   refresh of Volunteer 1 scanning Student 5 on an Android phone.
+
+ ## Rate limiting (Goal 11)
+
+- POST /events/:id/book has two sliding-window limits in Upstash Redis
+  (@upstash/ratelimit): 5 a minute per student (JWT sub) and 30 a minute per IP.
+  Over the limit -> 429 "Too many requests" with a Retry-After header (seconds).
+- It runs as a preHandler after requireRole("student"), so a blocked request never
+  opens a database transaction. Both checks run in parallel: one round trip to
+  Upstash in Singapore, same region as Render and Neon.
+- Sliding window, not fixed: a fixed per-minute window lets someone send 5 at 0:59
+  and 5 more at 1:01.
+- Fails open: if Redis errors, the booking goes through and the error is logged.
+  The atomic seat update (Goal 6) is what prevents overselling; the limiter only
+  stops spam, so it is the safe part to skip during an outage.
+- RATE_LIMIT_PER_IP=off turns the per-IP limit off (per-student stays on). The
+  Goal 12 k6 test sends 500 bookings from one laptop, i.e. one IP, which the
+  30/min limit would otherwise block.
+- trustProxy: true in Fastify. Requests go browser -> Vercel rewrite -> Render's
+  proxy -> API, so without it request.ip is a proxy address and every student
+  would share one IP limit. With it, Fastify uses the first X-Forwarded-For address.
+- Live test 2026-11-02: Student 10 clicked Book 6 times in a minute on the Vercel
+  site; clicks 1-5 got 409 Already booked, the 6th got 429 "Try again in 34
+  seconds", seats_left unchanged. Local test: 201, 409 x4, 429 Retry-After 36.
+- Deploy gotcha: quotes around UPSTASH_REDIS_REST_URL on Render crashed the API
+  at startup (UrlError). Node's --env-file strips quotes locally; Render keeps them. 
