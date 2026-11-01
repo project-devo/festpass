@@ -7,6 +7,7 @@ import { eventRoutes } from "./routes/events";
 import { meRoutes } from "./routes/me";
 import fastifyCors from "@fastify/cors";
 import { checkinRoutes } from "./routes/checkin";
+import { attendanceRoutes } from "./routes/attendance";
 
 
 
@@ -50,6 +51,7 @@ export function buildApp() {
   app.register(eventRoutes);
   app.register(meRoutes);
   app.register(checkinRoutes);
+  app.register(attendanceRoutes);
   return app;
 }
 
