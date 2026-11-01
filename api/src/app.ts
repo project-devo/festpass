@@ -6,6 +6,7 @@ import { authRoutes } from "./routes/auth";
 import { eventRoutes } from "./routes/events";
 import { meRoutes } from "./routes/me";
 import fastifyCors from "@fastify/cors";
+import { checkinRoutes } from "./routes/checkin";
 
 
 
@@ -48,7 +49,7 @@ export function buildApp() {
   app.register(authRoutes);
   app.register(eventRoutes);
   app.register(meRoutes);
-
+  app.register(checkinRoutes);
   return app;
 }
 
