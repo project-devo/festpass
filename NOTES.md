@@ -74,3 +74,17 @@
   every ticket to that one inbox; unset it once a domain is verified.
 - pg-boss 12 is ESM-only; the API is CommonJS and loads it through Node's require(esm)
   (Node 22.12+, Render runs Node 24).
+
+
+## Attendance page (Goal 10)
+
+- GET /events/:id/attendance (organiser only, and only for their own events, else 403):
+  one query, confirmed bookings JOIN users LEFT JOIN checkins. The LEFT JOIN keeps
+  people who haven't been scanned (checkedInAt null), so one query gives booked,
+  checked-in and the name list. Cancelled bookings are not counted as booked.
+- The page polls every 5 s with setInterval, skips while the tab is hidden, and keeps
+  the last numbers on screen if one request fails. Polling over WebSockets: one cheap
+  query per open page is enough for a gate dashboard and adds nothing to Render's
+  free tier. Stretch 3 replaces it with Socket.IO pushes.
+- Live test 2026-11-01: Battle of the Bands went 5/10 -> 6/10 on the laptop within one
+  refresh of Volunteer 1 scanning Student 5 on an Android phone.
