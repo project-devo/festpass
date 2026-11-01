@@ -7,6 +7,7 @@ import { db } from "../db/client";
 import { bookings, events } from "../db/schema";
 import { signTicket } from "../tickets";
 import { queueTicketEmail } from "../queue";
+import { bookingRateLimit } from "../ratelimit";
 
 const eventParams = z.object({ id: z.uuid() });
 
@@ -69,7 +70,7 @@ export async function eventRoutes(app: FastifyInstance) {
     return event;
   });
 
-    app.post("/events/:id/book", { preHandler: requireRole("student") }, async (request, reply) => {
+    app.post("/events/:id/book", { preHandler: [requireRole("student"), bookingRateLimit] }, async (request, reply) => {
     const params = eventParams.safeParse(request.params);
     if (!params.success) {
       return reply.code(400).send({ error: "Event id must be a valid UUID" });

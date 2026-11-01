@@ -24,7 +24,7 @@ export function buildApp() {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET is missing in api/.env");
 
-  const app = Fastify({ logger: true });
+  const app = Fastify({ logger: true, trustProxy: true });
 
     app.register(fastifyCors, {
     origin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
