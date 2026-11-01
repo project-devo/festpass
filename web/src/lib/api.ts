@@ -27,14 +27,19 @@ export type Booking = {
   event: Pick<FestEvent, "id" | "title" | "venue" | "startsAt">;
 };
 
+export type CheckinResult = { studentName: string; eventTitle: string; checkedInAt: string };
+
 export class ApiError extends Error {
   status: number;
   details?: Record<string, string[]>;
+  // The full error body, e.g. { error, studentName, eventTitle } from POST /checkin
+  body?: Record<string, unknown>;
 
-  constructor(status: number, message: string, details?: Record<string, string[]>) {
+  constructor(status: number, message: string, details?: Record<string, string[]>, body?: Record<string, unknown>) {
     super(message);
     this.status = status;
     this.details = details;
+    this.body = body;
   }
 }
 
@@ -55,7 +60,7 @@ async function request<T>(path: string, options: { method?: "GET" | "POST"; body
 
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new ApiError(res.status, data?.error ?? `Request failed (${res.status})`, data?.details);
+    throw new ApiError(res.status, data?.error ?? `Request failed (${res.status})`, data?.details, data ?? undefined);
   }
   return data as T;
 }
@@ -84,5 +89,6 @@ export const api = {
   getMyBookings: () => request<Booking[]>("/me/bookings"),
     cancelBooking: (id: string) =>
     request<{ id: string; status: "cancelled"; seatsLeft: number }>(`/me/bookings/${id}/cancel`, { method: "POST" }),
+      checkIn: (token: string) => request<CheckinResult>("/checkin", { method: "POST", body: { token } }),
 };
 

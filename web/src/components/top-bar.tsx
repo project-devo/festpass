@@ -16,6 +16,7 @@ export function TopBar() {
     { href: "/", label: "Events", show: true },
     { href: "/tickets", label: "My tickets", show: session?.role === "student" },
     { href: "/events/new", label: "Create event", show: session?.role === "organiser" },
+    { href: "/scan", label: "Scan tickets", show: session?.role === "volunteer" },
   ].filter((link) => link.show);
 
   async function handleLogout() {
