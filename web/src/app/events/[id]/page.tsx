@@ -55,6 +55,17 @@ export default function EventPage() {
         </Link>
       );
     }
+    // The organiser who owns this event gets a link to the live attendance page
+    if (session.role === "organiser" && session.sub === event?.organiserId) {
+      return (
+        <Link
+          href={`/events/${id}/attendance`}
+          className="inline-flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 sm:w-auto"
+        >
+          View attendance
+        </Link>
+      );
+    }
     if (session.role !== "student") {
       return <p className="text-sm text-slate-600">Only students can book passes.</p>;
     }

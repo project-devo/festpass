@@ -29,6 +29,16 @@ export type Booking = {
 
 export type CheckinResult = { studentName: string; eventTitle: string; checkedInAt: string };
 
+
+export type Attendee = { bookingId: string; name: string; email: string; checkedInAt: string | null };
+
+export type Attendance = {
+  event: Pick<FestEvent, "id" | "title" | "venue" | "startsAt">;
+  booked: number;
+  checkedIn: number;
+  attendees: Attendee[];
+};
+
 export class ApiError extends Error {
   status: number;
   details?: Record<string, string[]>;
@@ -90,5 +100,6 @@ export const api = {
     cancelBooking: (id: string) =>
     request<{ id: string; status: "cancelled"; seatsLeft: number }>(`/me/bookings/${id}/cancel`, { method: "POST" }),
       checkIn: (token: string) => request<CheckinResult>("/checkin", { method: "POST", body: { token } }),
+   getAttendance: (id: string) => request<Attendance>(`/events/${id}/attendance`),
 };
 
