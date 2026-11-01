@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
+// Where Vercel forwards /api/* requests. Set API_ORIGIN on Vercel to the Render URL.
+const apiOrigin = process.env.API_ORIGIN ?? "http://localhost:4000";
+
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
@@ -11,6 +13,11 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  // Browser calls /api/events on our own domain, Vercel fetches apiOrigin/events.
+  // Same site for the browser, so Safari keeps the login cookie.
+  async rewrites() {
+    return [{ source: "/api/:path*", destination: `${apiOrigin}/:path*` }];
   },
 };
 

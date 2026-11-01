@@ -9,10 +9,12 @@ import { requireAuth } from "../auth/guards";
 const isProd = process.env.NODE_ENV === "production";
 const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
 
+// Web and API now look like one site to the browser (Vercel proxies /api),
+// so a normal first-party Lax cookie works everywhere, Safari included.
 const cookieOptions = {
   httpOnly: true,
   secure: isProd,
-  sameSite: isProd ? ("none" as const) : ("lax" as const),
+  sameSite: "lax" as const,
   path: "/",
 };
 
