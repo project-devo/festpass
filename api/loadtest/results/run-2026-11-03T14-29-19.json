@@ -1,0 +1,284 @@
+{
+  "result": {
+    "ranAt": "2026-11-03T14:29:19.632Z",
+    "from": "Priyank's laptop (India) -> Render free tier (Singapore)",
+    "api": "https://festpass-api.onrender.com",
+    "eventId": "987484ea-249f-407d-88a1-bf72a795d6d2",
+    "virtualUsers": 500,
+    "seats": 100,
+    "totalRequests": 500,
+    "booked": 100,
+    "soldOut": 400,
+    "errors": 0,
+    "confirmedInDb": 100,
+    "seatsLeftAfter": 0,
+    "oversells": 0,
+    "latencyMs": {
+      "avg": 8896,
+      "median": 9395,
+      "p95": 11709,
+      "p99": 11873,
+      "max": 11887
+    }
+  },
+  "k6": {
+    "root_group": {
+      "name": "",
+      "path": "",
+      "id": "d41d8cd98f00b204e9800998ecf8427e",
+      "groups": [],
+      "checks": []
+    },
+    "options": {
+      "summaryTrendStats": [
+        "avg",
+        "med",
+        "p(95)",
+        "p(99)",
+        "max"
+      ],
+      "summaryTimeUnit": "",
+      "noColor": false
+    },
+    "state": {
+      "isStdOutTTY": true,
+      "isStdErrTTY": true,
+      "testRunDurationMs": 14091.4916
+    },
+    "metrics": {
+      "seats_left_after": {
+        "type": "gauge",
+        "contains": "default",
+        "values": {
+          "value": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "http_req_duration": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 8810.447447920793,
+          "med": 9390.8859,
+          "p(95)": 11708.4493,
+          "p(99)": 11872.268451999998,
+          "max": 11887.3209
+        }
+      },
+      "http_req_duration{expected_response:true}": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 8810.447447920793,
+          "med": 9390.8859,
+          "p(95)": 11708.4493,
+          "p(99)": 11872.268451999998,
+          "max": 11887.3209
+        }
+      },
+      "http_req_failed": {
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "rate": 0,
+          "passes": 0,
+          "fails": 505
+        }
+      },
+      "http_req_receiving": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "med": 0,
+          "p(95)": 2.3722,
+          "p(99)": 5.381663999999991,
+          "max": 9.2563,
+          "avg": 0.3597841584158416
+        }
+      },
+      "book_duration": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 8895.966453600002,
+          "med": 9394.598,
+          "p(95)": 11709.116855,
+          "p(99)": 11872.753475,
+          "max": 11887.3209
+        }
+      },
+      "http_req_connecting": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "p(99)": 103.12926799999988,
+          "max": 1022.8909,
+          "avg": 36.75068316831689,
+          "med": 33.9887,
+          "p(95)": 65.91336
+        }
+      },
+      "book_errors": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 0,
+          "rate": 0
+        },
+        "thresholds": {
+          "count==0": {
+            "ok": true
+          }
+        }
+      },
+      "http_req_waiting": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "max": 11886.1641,
+          "avg": 8809.977914455449,
+          "med": 9390.3049,
+          "p(95)": 11707.149220000001,
+          "p(99)": 11872.253052
+        }
+      },
+      "oversells": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 0,
+          "rate": 0
+        },
+        "thresholds": {
+          "count==0": {
+            "ok": true
+          }
+        }
+      },
+      "http_req_blocked": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 499.39833762376196,
+          "med": 561.6387,
+          "p(95)": 751.4065999999999,
+          "p(99)": 790.964072,
+          "max": 1056.9
+        }
+      },
+      "http_req_tls_handshaking": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 458.4670162376234,
+          "med": 526.51,
+          "p(95)": 711.49108,
+          "p(99)": 754.4039839999999,
+          "max": 766.271
+        }
+      },
+      "booked": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "rate": 7.096480829609266,
+          "count": 100
+        },
+        "thresholds": {
+          "count==100": {
+            "ok": true
+          }
+        }
+      },
+      "http_reqs": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 505,
+          "rate": 35.83722818952679
+        }
+      },
+      "http_req_sending": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "max": 2.5163,
+          "avg": 0.1097493069306931,
+          "med": 0,
+          "p(95)": 0.6741,
+          "p(99)": 2.009464
+        }
+      },
+      "vus": {
+        "values": {
+          "value": 0,
+          "min": 0,
+          "max": 499
+        },
+        "type": "gauge",
+        "contains": "default"
+      },
+      "data_received": {
+        "type": "counter",
+        "contains": "data",
+        "values": {
+          "count": 2176660,
+          "rate": 154466.25962577306
+        }
+      },
+      "confirmed_bookings": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 100,
+          "rate": 7.096480829609266
+        }
+      },
+      "iterations": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "rate": 35.48240414804633,
+          "count": 500
+        }
+      },
+      "vus_max": {
+        "values": {
+          "min": 500,
+          "max": 500,
+          "value": 500
+        },
+        "type": "gauge",
+        "contains": "default"
+      },
+      "data_sent": {
+        "type": "counter",
+        "contains": "data",
+        "values": {
+          "count": 1031660,
+          "rate": 73211.55412674695
+        }
+      },
+      "iteration_duration": {
+        "values": {
+          "max": 12664.2215,
+          "avg": 9401.045301799999,
+          "med": 10016.23835,
+          "p(95)": 12418.130505,
+          "p(99)": 12576.575035
+        },
+        "type": "trend",
+        "contains": "time"
+      },
+      "sold_out": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 400,
+          "rate": 28.385923318437065
+        }
+      }
+    }
+  }
+}

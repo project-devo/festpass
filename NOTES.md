@@ -113,3 +113,36 @@
   seconds", seats_left unchanged. Local test: 201, 409 x4, 429 Retry-After 36.
 - Deploy gotcha: quotes around UPSTASH_REDIS_REST_URL on Render crashed the API
   at startup (UrlError). Node's --env-file strips quotes locally; Render keeps them. 
+
+
+## Load test (Goal 12)
+
+- k6 v2.3.0, api/loadtest/book.js: 500 virtual users, 1 booking each, all starting
+  together (per-vu-iterations, 1 iteration) on a fresh 100-seat event created in setup().
+  201 = booked, 409 "Sold out" = expected, anything else = error. Thresholds fail the run
+  unless booked == 100, oversells == 0 and errors == 0.
+- After each run, teardown() reads the event and the organiser attendance list back
+  from the API; then the same was checked in Neon SQL (confirmed bookings = 100,
+  seats_left = 0 for all three "Load test" events).
+- 500 load-test students (student1..500@loadtest.festpass.test) created by
+  api/loadtest/seed-users.ts, which logs each in through the live API and saves the JWTs
+  to api/loadtest/tokens.json (gitignored). Their ticket emails are skipped in queue.ts:
+  Resend free sends 100 emails a day and one run books 100 seats. The booking and the
+  queued job are still real.
+- Ran from my laptop (India) to the Render free tier (Singapore), Neon Singapore,
+  RATE_LIMIT_PER_IP=off for the runs (back on after). 2026-11-03:
+
+| Run | Requests | Booked | Sold out | Errors | Oversells | Median | p95 | Max |
+|---|---|---|---|---|---|---|---|---|
+| 1 (14:27 UTC) | 500 | 100 | 400 | 0 | 0 | 12.3 s | 14.4 s | 14.7 s |
+| 2 (14:29 UTC) | 500 | 100 | 400 | 0 | 0 | 9.4 s | 11.7 s | 11.9 s |
+| 3 (14:29 UTC) | 500 | 100 | 400 | 0 | 0 | 8.4 s | 10.3 s | 10.6 s |
+
+- Latency is high because the free instance has a fraction of a CPU and the pg pool
+  has 10 connections, so 500 bookings queue. Correctness is what the test proves:
+  0 oversells in 1,500 requests. Results JSON in api/loadtest/results/.
+- Bug found and fixed by the test: Render -> Neon connects failed under load with
+  ENETUNREACH (IPv6) then ETIMEDOUT (IPv4). Node's happy-eyeballs gives each address
+  250 ms; Render has no IPv6 and the busy CPU missed the IPv4 window. Fix in
+  server.ts: dns.setDefaultResultOrder("ipv4first") + net.setDefaultAutoSelectFamily(false).
+- One login in the seed got a Render/Cloudflare 520 and succeeded on retry.

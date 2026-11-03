@@ -11,19 +11,25 @@ const COUNT = 500;
 const PASSWORD = "loadtest123";
 const emailFor = (i: number) => `student${i}@loadtest.festpass.test`;
 
-// Logs in and returns just the JWT from the "token" cookie
+// Logs in and returns just the JWT from the "token" cookie. Retries twice on a failed response.
 async function login(email: string): Promise<string> {
-  const res = await fetch(`${API}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password: PASSWORD }),
-  });
-  if (!res.ok) throw new Error(`Login failed for ${email}: ${res.status} ${await res.text()}`);
-  const cookie = res.headers.getSetCookie().find((c) => c.startsWith("token="));
-  if (!cookie) throw new Error(`No token cookie for ${email}`);
-  return cookie.split(";")[0].slice("token=".length);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const res = await fetch(`${API}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: PASSWORD }),
+    });
+    if (res.ok) {
+      const cookie = res.headers.getSetCookie().find((c) => c.startsWith("token="));
+      if (!cookie) throw new Error(`No token cookie for ${email}`);
+      return cookie.split(";")[0].slice("token=".length);
+    }
+    const text = (await res.text()).slice(0, 200);
+    console.log(`\n${email}: attempt ${attempt} got ${res.status} ${text}`);
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error(`Login failed 3 times for ${email}`);
 }
-
 async function main() {
   console.log(`API: ${API}`);
 

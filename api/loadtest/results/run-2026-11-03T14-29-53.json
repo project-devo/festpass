@@ -1,0 +1,284 @@
+{
+  "result": {
+    "ranAt": "2026-11-03T14:29:53.325Z",
+    "from": "Priyank's laptop (India) -> Render free tier (Singapore)",
+    "api": "https://festpass-api.onrender.com",
+    "eventId": "9094f693-4991-4aeb-9a7f-654ebfb63400",
+    "virtualUsers": 500,
+    "seats": 100,
+    "totalRequests": 500,
+    "booked": 100,
+    "soldOut": 400,
+    "errors": 0,
+    "confirmedInDb": 100,
+    "seatsLeftAfter": 0,
+    "oversells": 0,
+    "latencyMs": {
+      "avg": 7799,
+      "median": 8356,
+      "p95": 10337,
+      "p99": 10526,
+      "max": 10577
+    }
+  },
+  "k6": {
+    "options": {
+      "summaryTrendStats": [
+        "avg",
+        "med",
+        "p(95)",
+        "p(99)",
+        "max"
+      ],
+      "summaryTimeUnit": "",
+      "noColor": false
+    },
+    "state": {
+      "isStdErrTTY": true,
+      "testRunDurationMs": 12948.8023,
+      "isStdOutTTY": true
+    },
+    "metrics": {
+      "data_sent": {
+        "type": "counter",
+        "contains": "data",
+        "values": {
+          "count": 1031658,
+          "rate": 79672.07901536963
+        }
+      },
+      "http_reqs": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "rate": 38.99974594561537,
+          "count": 505
+        }
+      },
+      "http_req_blocked": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 772.6881104950493,
+          "med": 850.9279,
+          "p(95)": 1021.1478999999999,
+          "p(99)": 1189.3396719999969,
+          "max": 1256.0523
+        }
+      },
+      "vus": {
+        "type": "gauge",
+        "contains": "default",
+        "values": {
+          "value": 0,
+          "min": 0,
+          "max": 497
+        }
+      },
+      "http_req_connecting": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "p(99)": 420.107728,
+          "max": 1014.8216,
+          "avg": 186.02776534653458,
+          "med": 119.4879,
+          "p(95)": 402.4799
+        }
+      },
+      "http_req_duration": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "med": 8317.949,
+          "p(95)": 10337.21434,
+          "p(99)": 10525.997124,
+          "max": 10577.2832,
+          "avg": 7724.412099801977
+        }
+      },
+      "http_req_duration{expected_response:true}": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 7724.412099801977,
+          "med": 8317.949,
+          "p(95)": 10337.21434,
+          "p(99)": 10525.997124,
+          "max": 10577.2832
+        }
+      },
+      "confirmed_bookings": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 100,
+          "rate": 7.722721969428786
+        }
+      },
+      "http_req_tls_handshaking": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 584.8563079207922,
+          "med": 581.5871,
+          "p(95)": 900.7979799999998,
+          "p(99)": 948.156408,
+          "max": 969.4243
+        }
+      },
+      "book_errors": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 0,
+          "rate": 0
+        },
+        "thresholds": {
+          "count==0": {
+            "ok": true
+          }
+        }
+      },
+      "http_req_sending": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 0.24664594059405945,
+          "med": 0,
+          "p(95)": 0.9962799999999972,
+          "p(99)": 2.03426,
+          "max": 19.2587
+        }
+      },
+      "iteration_duration": {
+        "values": {
+          "avg": 8580.105492,
+          "med": 9213.2771,
+          "p(95)": 11452.530455,
+          "p(99)": 11557.04524,
+          "max": 11648.8655
+        },
+        "type": "trend",
+        "contains": "time"
+      },
+      "booked": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 100,
+          "rate": 7.722721969428786
+        },
+        "thresholds": {
+          "count==100": {
+            "ok": true
+          }
+        }
+      },
+      "http_req_waiting": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "p(95)": 10337.21434,
+          "p(99)": 10525.997124,
+          "max": 10571.5039,
+          "avg": 7723.687931881184,
+          "med": 8317.4014
+        }
+      },
+      "sold_out": {
+        "values": {
+          "rate": 30.890887877715144,
+          "count": 400
+        },
+        "type": "counter",
+        "contains": "default"
+      },
+      "oversells": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 0,
+          "rate": 0
+        },
+        "thresholds": {
+          "count==0": {
+            "ok": true
+          }
+        }
+      },
+      "data_received": {
+        "type": "counter",
+        "contains": "data",
+        "values": {
+          "count": 2176151,
+          "rate": 168058.09136494424
+        }
+      },
+      "http_req_failed": {
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "rate": 0,
+          "passes": 0,
+          "fails": 505
+        }
+      },
+      "iterations": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 500,
+          "rate": 38.613609847143934
+        }
+      },
+      "http_req_receiving": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "p(95)": 2.743419999999995,
+          "p(99)": 6.2421159999999904,
+          "max": 7.9108,
+          "avg": 0.4775219801980198,
+          "med": 0
+        }
+      },
+      "seats_left_after": {
+        "type": "gauge",
+        "contains": "default",
+        "values": {
+          "value": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "book_duration": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 7799.396900799996,
+          "med": 8355.8218,
+          "p(95)": 10337.306175,
+          "p(99)": 10526.071734,
+          "max": 10577.2832
+        }
+      },
+      "vus_max": {
+        "values": {
+          "value": 500,
+          "min": 500,
+          "max": 500
+        },
+        "type": "gauge",
+        "contains": "default"
+      }
+    },
+    "root_group": {
+      "checks": [],
+      "name": "",
+      "path": "",
+      "id": "d41d8cd98f00b204e9800998ecf8427e",
+      "groups": []
+    }
+  }
+}
