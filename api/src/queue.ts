@@ -53,6 +53,13 @@ async function sendTicket(bookingId: string) {
   // Booking gone or cancelled before the job ran: nothing to send, and no point retrying
   if (!row || row.status !== "confirmed") return;
 
+    // Goal 12 load-test students: the booking and the job are real, but no email is sent.
+  // Resend free allows 100 emails a day, and one k6 run books 100 seats.
+  if (row.email.endsWith("@loadtest.festpass.test")) {
+    console.log(`[send-ticket] booking ${bookingId} is a load-test booking, email skipped`);
+    return;
+  }
+
   const emailId = await sendTicketEmail({
     to: row.email,
     name: row.name,

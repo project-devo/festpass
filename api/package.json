@@ -9,7 +9,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file=.env src/db/seed.ts",
     "dev": "tsx --env-file=.env src/server.ts",
-    "race": "tsx scripts/race.ts"
+    "race": "tsx scripts/race.ts",
+    "loadtest:seed": "tsx --env-file=.env loadtest/seed-users.ts"
+
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.3",
