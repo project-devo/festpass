@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # A throwaway Postgres for this job only. Tests and the smoke test use it, never Neon.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: festpass_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Same variables as api/.env.test. Fake secrets: this database is deleted when the job ends.
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/festpass_test
+      JWT_SECRET: ci-jwt-secret-not-real-0123456789
+      QR_SECRET: ci-qr-secret-not-real-0123456789
+      ALLOW_DB_RESET: "yes"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4 # reads the pnpm version from packageManager in package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: |
+          pnpm lint
+          pnpm --filter web lint
+
+      - name: Type-check
+        run: |
+          pnpm --filter api exec tsc --noEmit -p tsconfig.json
+          pnpm --filter api exec tsc -p test
+          pnpm --filter web exec tsc --noEmit
+
+      - name: Migrate the test database
+        run: pnpm --filter api db:migrate
+
+      - name: Tests
+        run: pnpm test
+
+      # ---- k6 smoke test: 50 students, 10 seats, against the API running in this job ----
+
+      - name: Seed demo data
+        run: pnpm --filter api exec tsx src/db/seed.ts
+
+      - name: Start the API
+        working-directory: api
+        env:
+          RESEND_API_KEY: re_ci_not_real # load-test students never get emails, but email.ts needs a value
+          RATE_LIMIT: "off" # no Upstash in CI; rate limiting is covered by the Vitest tests
+        run: |
+          nohup pnpm exec tsx src/server.ts > api.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:4000/health && exit 0
+            sleep 1
+          done
+          echo "API did not start"; cat api.log; exit 1
+
+      - name: Create 50 load-test students
+        working-directory: api
+        env:
+          LOADTEST_USERS: "50"
+        run: pnpm exec tsx loadtest/seed-users.ts
+
+      - uses: grafana/setup-k6-action@v1
+
+      - name: k6 smoke test (fails if any oversell or error)
+        run: k6 run -e API_URL=http://localhost:4000 -e SEATS=10 -e RUN_FROM="GitHub Actions (API and Postgres in the same job)" api/loadtest/book.js
+
+      - name: Show API log
+        if: failure()
+        run: cat api/api.log || true

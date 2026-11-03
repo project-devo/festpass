@@ -21,8 +21,12 @@ const perIp = new Ratelimit({
 // RATE_LIMIT_PER_IP=off for the Goal 12 load test (500 users from one laptop share one IP)
 const ipLimitOn = process.env.RATE_LIMIT_PER_IP !== "off";
 
+// RATE_LIMIT=off turns both limits off. Only the CI smoke test uses it (no Upstash in CI).
+const rateLimitOn = process.env.RATE_LIMIT !== "off";
+
 // preHandler for POST /events/:id/book. Runs after requireRole("student"), so request.user is set.
 export async function bookingRateLimit(request: FastifyRequest, reply: FastifyReply) {
+    if (!rateLimitOn) return;
   try {
     const checks = [perUser.limit(request.user.sub)];
     if (ipLimitOn) checks.push(perIp.limit(request.ip));

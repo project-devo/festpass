@@ -7,7 +7,7 @@ import { db, pool } from "../src/db/client";
 import { users } from "../src/db/schema";
 
 const API = process.env.API_URL ?? "http://localhost:4000";
-const COUNT = 500;
+const COUNT = Number(process.env.LOADTEST_USERS ?? 500); // CI smoke test uses 50
 const PASSWORD = "loadtest123";
 const emailFor = (i: number) => `student${i}@loadtest.festpass.test`;
 

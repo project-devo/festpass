@@ -7,4 +7,11 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,
+  // k6 scripts run inside k6, not Node: tell ESLint about k6's globals
+  {
+    files: ['api/loadtest/**/*.js'],
+    languageOptions: {
+      globals: { __ENV: 'readonly', __VU: 'readonly', open: 'readonly', console: 'readonly' },
+    },
+  },
 );

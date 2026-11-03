@@ -45,6 +45,8 @@ export default function AttendancePage() {
   // Load once, then every 5 seconds. Skip while the tab is hidden to save requests.
   useEffect(() => {
     if (!isOrganiser) return;
+        // load() only sets state after its await, so this is not the synchronous setState the rule fears
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
     const timer = setInterval(() => {
       if (!document.hidden) void load();

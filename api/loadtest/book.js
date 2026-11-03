@@ -5,7 +5,8 @@ import { SharedArray } from "k6/data";
 import { Counter, Gauge, Trend } from "k6/metrics";
 
 const API = __ENV.API_URL || "https://festpass-api.onrender.com";
-const SEATS = 100;
+const SEATS = Number(__ENV.SEATS || 100); // CI smoke test uses 10
+const RUN_FROM = __ENV.RUN_FROM || "Priyank's laptop (India) -> Render free tier (Singapore)";
 
 // The 500 JWTs from seed-users.ts, loaded once and shared by every virtual user
 const tokens = new SharedArray("tokens", () => JSON.parse(open("./tokens.json")));
@@ -109,7 +110,7 @@ export function handleSummary(data) {
 
   const result = {
     ranAt: new Date().toISOString(),
-    from: "Priyank's laptop (India) -> Render free tier (Singapore)",
+    from: RUN_FROM,
     api: API,
     eventId: data.setup_data ? data.setup_data.eventId : null,
     virtualUsers: tokens.length,
