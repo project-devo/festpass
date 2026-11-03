@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "test": "vitest run",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "db:generate": "drizzle-kit generate",
@@ -11,7 +12,6 @@
     "dev": "tsx --env-file=.env src/server.ts",
     "race": "tsx scripts/race.ts",
     "loadtest:seed": "tsx --env-file=.env loadtest/seed-users.ts"
-
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.3",
@@ -33,6 +33,7 @@
     "@types/pg": "^8.23.1",
     "@types/qrcode": "^1.5.6",
     "drizzle-kit": "^0.31.11",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "vitest": "^5.1.0"
   }
 }
