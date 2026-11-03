@@ -1,5 +1,7 @@
 # FestPass
 
+[![CI](https://github.com/project-devo/festpass/actions/workflows/ci.yml/badge.svg)](https://github.com/project-devo/festpass/actions/workflows/ci.yml)
+
 College fest ticketing with QR check-in. Students book seats, get a signed QR ticket by email, and volunteers scan them at the gate. The core guarantee: **the last seat is never sold twice**, even when hundreds of students book at the same moment.
 
 **Live demo:** https://festpass-pi.vercel.app
@@ -23,6 +25,7 @@ Organisers create events and see live attendance, students book and cancel, volu
 - Volunteer scanner page (phone camera); a second scan of the same ticket is refused
 - Attendance page for organisers, refreshing every 5 seconds
 - Rate limiting on booking with Upstash Redis (5 per minute per student, 30 per IP), 429 with Retry-After
+- CI on every push (GitHub Actions): lint, type-check, 14 Vitest tests against a Postgres service container, and a k6 smoke test (50 students, 10 seats, 0 oversells) against the API started inside the job
 
 ## How booking stays safe
 
