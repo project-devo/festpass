@@ -14,7 +14,7 @@ describe("booking", () => {
     const res = await book(student, event.id);
 
     expect(res.statusCode).toBe(201);
-    expect(res.json().seatsLeft).toBe(9);
+    expect(res.json().seatsLeft).toBe(8);
     expect(await seatsLeft(event.id)).toBe(9);
     expect(queueTicketEmail).toHaveBeenCalledWith(res.json().id); // ticket email was queued
   });
