@@ -1,3 +1,4 @@
+import { trackRequest } from "./server-status";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export type Role = "student" | "organiser" | "volunteer";
@@ -58,12 +59,12 @@ async function request<T>(path: string, options: { method?: "GET" | "POST"; body
 
   let res: Response;
   try {
-    res = await fetch(`${API_URL}${path}`, {
+    res = await trackRequest(fetch(`${API_URL}${path}`, {
       method,
       credentials: "include",
       headers: method === "POST" ? { "Content-Type": "application/json" } : undefined,
       body: method === "POST" ? JSON.stringify(options.body ?? {}) : undefined,
-    });
+    }));
   } catch {
     throw new ApiError(0, "Can't reach the server. Check that the API is running.");
   }
