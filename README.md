@@ -5,17 +5,47 @@
 College fest ticketing with QR check-in. Students book seats, get a signed QR ticket by email, and volunteers scan them at the gate. The core guarantee: **the last seat is never sold twice**, even when hundreds of students book at the same moment.
 
 **Live demo:** https://festpass-pi.vercel.app
-_Demo deployment with seeded data (a fake fest and test users, no real money). The API runs on Render's free tier, so the first request after idle can take about a minute to wake up._
+
+_Demo deployment with seeded data: a fake fest ("Resonance 2026") and test users, no real money. The API runs on Render's free tier, so the first request after it has been idle can take about a minute; the site shows a "waking up the server" notice while it does._
 
 ## Demo logins
 
-| Role | Email | Password |
-|---|---|---|
-| Organiser | organiser@festpass.test | organiser123 |
-| Volunteer | volunteer1@festpass.test | volunteer123 |
-| Student | student1@festpass.test | student123 |
+The login page has one-click buttons for each role, or type these in:
 
-Organisers create events and see live attendance, students book and cancel, volunteers scan tickets.
+| Role | Email | Password | What to try |
+|---|---|---|---|
+| Student | student1@festpass.test | student123 | Book an event, open My tickets, cancel |
+| Volunteer | volunteer1@festpass.test | volunteer123 | Open Scan and point the phone camera at a ticket QR |
+| Organiser | organiser@festpass.test | organiser123 | Create an event, open View attendance |
+
+Ticket emails in the demo all go to one inbox (Resend's free tier only delivers to the account owner), so a visitor sees their QR on the My tickets page.
+
+## Screenshots
+
+![Events page](docs/screenshots/events.png)
+
+| QR ticket (phone) | Gate scanner (phone) |
+|---|---|
+| ![QR ticket](docs/screenshots/ticket.png) | ![Scanner](docs/screenshots/scan.png) |
+
+![Live attendance](docs/screenshots/attendance.png)
+
+## Architecture
+
+```mermaid
+flowchart LR
+    B["Browser<br/>(student, volunteer, organiser)"] --> W["Next.js web<br/>Vercel"]
+    W -- "/api/* rewrite<br/>(same-site cookie)" --> A["Fastify API<br/>Render"]
+    A -- "SQL: bookings,<br/>atomic seat update" --> P[("PostgreSQL<br/>Neon")]
+    A -- "queue send-ticket job" --> Q["pg-boss<br/>(jobs stored in Postgres)"]
+    Q --- P
+    Q -- "worker sends QR email" --> R["Resend"]
+    A -- "rate limit check<br/>on booking" --> U[("Upstash Redis")]
+```
+
+- The browser only talks to Vercel. Vercel forwards `/api/*` to the Render API, so the login cookie is first-party (this fixed Safari dropping a cross-site cookie).
+- Booking commits in Postgres first, then queues a `send-ticket` job. A worker in the same API process draws the QR and emails it, retrying 3 times with backoff, so a slow email never slows or breaks booking.
+- Upstash Redis holds the rate-limit counters. If Redis is down, booking still works (the limiter fails open).
 
 ## Features
 
@@ -43,21 +73,107 @@ Postgres locks the event row, so a second request waits and re-checks `seats_lef
 | 2 | 500 | 100 | 400 | 0 | 0 | 11.7 s |
 | 3 | 500 | 100 | 400 | 0 | 0 | 10.3 s |
 
-**0 oversells and 0 errors across 1,500 concurrent requests.** Latency is high because the free instance has a fraction of a CPU and a 10-connection database pool, so 500 simultaneous bookings queue; the test proves correctness, not speed. The test also found a real bug (Render to Neon connections timing out under load), fixed in `api/src/server.ts`. Script: `api/loadtest/book.js`, results: `api/loadtest/results/`, details in `NOTES.md`.
+**0 oversells and 0 errors across 1,500 concurrent requests.** Latency is high because the free instance has a fraction of a CPU and a 10-connection database pool, so 500 simultaneous bookings queue; the test proves correctness, not speed. The test also found a real bug (Render to Neon connections timing out under load), fixed in `api/src/server.ts`. Script: `api/loadtest/book.js`, results: `api/loadtest/results/`, details in [NOTES.md](NOTES.md).
+
+![k6 results](docs/screenshots/k6.png)
 
 ## Stack
 
-Next.js + TypeScript (Vercel) · Node.js + Fastify (Render) · PostgreSQL on Neon with Drizzle ORM · pg-boss job queue · Upstash Redis · Resend email · qrcode and html5-qrcode · k6
+| Part | Tech |
+|---|---|
+| Web | Next.js 16, TypeScript, Tailwind CSS (Vercel) |
+| API | Node.js, Fastify 5, Zod, JWT in an httpOnly cookie (Render) |
+| Database | PostgreSQL on Neon, Drizzle ORM and migrations |
+| Background jobs | pg-boss (queue stored in Postgres) |
+| Rate limiting | Upstash Redis, sliding window |
+| Email and QR | Resend, qrcode (draw), html5-qrcode (scan) |
+| Testing | Vitest + Fastify inject, k6, GitHub Actions |
+
+## Project structure
+
+```
+api/              Fastify API
+  src/routes/     auth, events, booking, me (tickets, cancel), checkin, attendance
+  src/db/         Drizzle schema, client, seed
+  drizzle/        SQL migrations
+  test/           Vitest integration tests
+  loadtest/       k6 script, load-test user seeding, saved results
+web/              Next.js app (src/app = pages, src/components, src/lib/api.ts)
+docs/screenshots/ README images
+NOTES.md          design decisions and every measured number
+```
 
 ## Run locally
 
-Needs Node 22.12+ and pnpm.
+You need **Node 22.12 or newer**, **pnpm** (`npm install -g pnpm`), and a **PostgreSQL 16** database. Email and Redis are optional.
 
-1. `pnpm install`
-2. Copy `.env.example` to `api/.env` and fill in the Neon, Upstash and Resend values plus any two random strings for `JWT_SECRET` and `QR_SECRET`
-3. `pnpm --filter api db:migrate`
-4. `pnpm --filter api db:seed`
-5. `pnpm --filter api dev` (API on port 4000)
-6. Create `web/.env.local` with `NEXT_PUBLIC_API_URL=http://localhost:4000`, then `pnpm --filter web dev` (web on port 3000)
+**1. Clone and install**
+
+```
+git clone https://github.com/project-devo/festpass.git
+cd festpass
+pnpm install
+```
+
+**2. Get a database.** Either create a free project on [Neon](https://neon.tech) and copy its connection string, or run Postgres in Docker:
+
+```
+docker run -d --name festpass-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=festpass -p 5432:5432 postgres:16
+```
+
+**3. Create `api/.env`** by copying `api/.env.example`. The defaults already match the Docker database above. For Neon, replace `DATABASE_URL` with your Neon string. Change `JWT_SECRET` and `QR_SECRET` to any two long random strings.
+
+| Variable | Needed? | What it is |
+|---|---|---|
+| `DATABASE_URL` | Yes | Postgres connection string |
+| `JWT_SECRET`, `QR_SECRET` | Yes | Secrets for login tokens and QR signatures |
+| `RESEND_API_KEY` | Yes, any value | A real [Resend](https://resend.com) key sends ticket emails; a placeholder lets the API start (email jobs fail and are logged, booking still works) |
+| `TICKET_EMAIL_TO` | No | Send every ticket to this address (Resend free only delivers to your own email) |
+| `RATE_LIMIT` | No | `off` skips rate limiting; remove it and set the two `UPSTASH_REDIS_REST_*` values to turn it on |
+| `WEB_ORIGIN` | No | Web URL allowed by CORS, default `http://localhost:3000` |
+
+**4. Create the tables and the demo data**
+
+```
+pnpm --filter api db:migrate
+```
+
+```
+pnpm --filter api db:seed
+```
+
+**5. Start the API** (port 4000)
+
+```
+pnpm --filter api dev
+```
+
+**6. Start the web app** in a second terminal (port 3000), then open http://localhost:3000 and log in with a demo account.
+
+```
+pnpm --filter web dev
+```
+
+The web app calls `http://localhost:4000` by default, so it needs no env file locally.
+
+## Tests
+
+The 14 integration tests wipe every table, so they need a second, empty database. With Docker, create it inside the same container:
+
+```
+docker exec festpass-db createdb -U postgres festpass_test
+```
+
+(With Neon, create a branch or a second database instead.) Then create `api/.env.test` with four lines: `DATABASE_URL` pointing at that test database (never the one in `api/.env`), `JWT_SECRET`, `QR_SECRET`, and `ALLOW_DB_RESET=yes`. Create its tables once, then run the tests:
+
+```
+pnpm --filter api db:migrate:test
+```
+
+```
+pnpm test
+```
+
+The tests mock email and Redis, so they need no Resend or Upstash keys.
 
 Design decisions and every measured number are in [NOTES.md](NOTES.md).

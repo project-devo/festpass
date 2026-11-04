@@ -8,6 +8,7 @@
     "start": "node dist/server.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:test": "node --env-file=.env.test node_modules/drizzle-kit/bin.cjs migrate",
     "db:seed": "tsx --env-file=.env src/db/seed.ts",
     "dev": "tsx --env-file=.env src/server.ts",
     "race": "tsx scripts/race.ts",
