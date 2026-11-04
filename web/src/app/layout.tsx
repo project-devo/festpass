@@ -4,7 +4,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { SessionProvider } from "@/components/session";
 import { TopBar } from "@/components/top-bar";
 import { PageState } from "@/components/ui";
-import { DemoBanner } from "@/components/demo-banner";
 import { WakingNotice } from "@/components/waking-notice";
 import "./globals.css";
 
@@ -32,7 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {/* Outside the Suspense boundary so both show even while the first page is still loading */}
-        <DemoBanner />
+        
         <WakingNotice />
         {/* One boundary around everything that reads the session or the URL, so it all hydrates together */}
         <Suspense fallback={<PageState loading />}>
