@@ -54,12 +54,37 @@ export class ApiError extends Error {
   }
 }
 
+
+const RETRY_STATUSES = new Set([429, 502, 503, 504]);
+const MAX_WAIT_MS = 60_000;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Render's free tier sleeps after 15 idle minutes. While it boots, the proxy in
+// front of it can answer 429/502/503/504 or drop the connection. GETs are safe
+// to repeat, so retry them with growing waits for up to a minute.
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  const started = Date.now();
+  let delay = 1000;
+  while (true) {
+    const timeLeft = Date.now() - started + delay < MAX_WAIT_MS;
+    const canRetry = init.method === "GET" && timeLeft;
+    try {
+      const res = await fetch(url, init);
+      if (!canRetry || !RETRY_STATUSES.has(res.status)) return res;
+    } catch (err) {
+      if (!canRetry) throw err;
+    }
+    await sleep(delay);
+    delay = Math.min(delay * 2, 8000);
+  }
+}
+
 async function request<T>(path: string, options: { method?: "GET" | "POST"; body?: unknown } = {}): Promise<T> {
   const method = options.method ?? "GET";
 
   let res: Response;
   try {
-    res = await trackRequest(fetch(`${API_URL}${path}`, {
+  res = await trackRequest(fetchWithRetry(`${API_URL}${path}`, { 
       method,
       credentials: "include",
       headers: method === "POST" ? { "Content-Type": "application/json" } : undefined,
