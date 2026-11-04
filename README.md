@@ -4,9 +4,9 @@
 
 College fest ticketing with QR check-in. Students book seats, get a signed QR ticket by email, and volunteers scan them at the gate. The core guarantee: **the last seat is never sold twice**, even when hundreds of students book at the same moment.
 
-**Live demo:** https://festpass-pi.vercel.app
+**Live demo:** https://festpass-pi.vercel.app (hosted on free tiers, so the first load can take up to a minute while the API wakes up)
 
-_Demo deployment with seeded data: a fake fest ("Resonance 2026") and test users, no real money. The API runs on Render's free tier, so the first request after it has been idle can take about a minute; the site shows a "waking up the server" notice while it does._
+_Demo deployment with seeded data: a fake fest ("Resonance 2026") and test users, no real money. While the API wakes up, the site shows a "waking up the server" notice and retries on its own._
 
 ## Demo logins
 
