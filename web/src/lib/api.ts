@@ -56,8 +56,21 @@ export class ApiError extends Error {
 
 
 const RETRY_STATUSES = new Set([429, 502, 503, 504]);
-const MAX_WAIT_MS = 60_000;
+const MAX_WAIT_MS = 90_000;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+
+// Render's edge answers 429 to requests that come through Vercel while the API
+// sleeps, and they never wake it. A request straight from the visitor's browser
+// does wake it, so ping /health directly once. no-cors: we ignore the response.
+const WAKE_URL = process.env.NEXT_PUBLIC_WAKE_URL;
+let wakeSent = false;
+function wakeApi() {
+  if (!WAKE_URL || wakeSent) return;
+  wakeSent = true;
+  fetch(WAKE_URL, { mode: "no-cors" }).catch(() => {});
+}
+
 
 // Render's free tier sleeps after 15 idle minutes. While it boots, the proxy in
 // front of it can answer 429/502/503/504 or drop the connection. GETs are safe
@@ -74,6 +87,7 @@ async function fetchWithRetry(url: string, init: RequestInit): Promise<Response>
     } catch (err) {
       if (!canRetry) throw err;
     }
+    wakeApi();
     await sleep(delay);
     delay = Math.min(delay * 2, 8000);
   }
