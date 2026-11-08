@@ -4,18 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, ApiError, type Booking } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
+import { PinIcon, TicketIcon } from "@/components/icons";
+import { Perforation } from "@/components/perforation";
 import { useSession } from "@/components/session";
 import { TicketQr } from "@/components/ticket-qr";
-import { Card, PageState } from "@/components/ui";
-
-function StatusBadge({ status }: { status: Booking["status"] }) {
-  const style = status === "confirmed" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600";
-  return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${style}`}>
-      {status === "confirmed" ? "Confirmed" : "Cancelled"}
-    </span>
-  );
-}
+import { Badge, Notice, PageHeader, PageState, buttonClass } from "@/components/ui";
 
 export default function TicketsPage() {
   const { session, loading: sessionLoading } = useSession();
@@ -55,81 +48,85 @@ export default function TicketsPage() {
 
   if (!session) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16 text-center">
-        <p className="font-medium text-slate-900">Log in to see your tickets</p>
-        <Link href="/login" className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">
-          Log in
-        </Link>
-      </main>
+      <Notice
+        icon={<TicketIcon className="size-5" />}
+        title="Log in to see your tickets"
+        action={
+          <Link href="/login" className={buttonClass("primary")}>
+            Log in
+          </Link>
+        }
+      />
     );
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">My tickets</h1>
-      <p className="mt-1 text-sm text-slate-600">Show the QR code at the gate to check in.</p>
+    <main className="mx-auto max-w-md px-4 py-10">
+      <PageHeader title="My tickets" subtitle="Show the QR code at the gate to check in." />
 
-      <div className="mt-6">
-        {error || !bookings ? (
-          <PageState loading={!bookings} error={error} />
-        ) : bookings.length === 0 ? (
-          <Card className="text-center">
-            <p className="font-medium text-slate-900">No tickets yet</p>
-            <p className="mt-1 text-sm text-slate-600">Book a pass and it will show up here.</p>
-            <Link href="/" className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">
+      {error || !bookings ? (
+        <PageState loading={!bookings} error={error} />
+      ) : bookings.length === 0 ? (
+        <Notice
+          icon={<TicketIcon className="size-5" />}
+          title="No tickets yet"
+          text="Book a pass and it will show up here."
+          action={
+            <Link href="/events" className={buttonClass("primary")}>
               Browse events
             </Link>
-          </Card>
-        ) : (
-          <ul className="space-y-4">
-            {bookings.map((booking) => {
-              const confirmed = booking.status === "confirmed";
-              return (
-                <li key={booking.id}>
-                  <Card className={confirmed ? "" : "opacity-60"}>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-indigo-600">
-                          {formatDateTime(booking.event.startsAt)}
-                        </p>
-                        <h2 className="mt-1 text-base font-semibold text-slate-900">{booking.event.title}</h2>
-                        <p className="mt-0.5 text-sm text-slate-600">{booking.event.venue}</p>
-                      </div>
-                      <StatusBadge status={booking.status} />
-                    </div>
+          }
+        />
+      ) : (
+        <ul className="space-y-6">
+          {bookings.map((booking) => {
+            const confirmed = booking.status === "confirmed";
+            return (
+              <li
+                key={booking.id}
+                className={`rounded-3xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04)] ${confirmed ? "" : "opacity-60"}`}
+              >
+                <div className="flex items-start justify-between gap-3 p-6">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
+                      {formatDateTime(booking.event.startsAt)}
+                    </p>
+                    <h2 className="mt-1.5 text-lg font-semibold text-zinc-950">{booking.event.title}</h2>
+                    <p className="mt-1 flex items-center gap-1.5 text-sm text-zinc-500">
+                      <PinIcon className="size-4 shrink-0 text-zinc-400" /> {booking.event.venue}
+                    </p>
+                  </div>
+                  <Badge tone={confirmed ? "green" : "neutral"}>{confirmed ? "Confirmed" : "Cancelled"}</Badge>
+                </div>
 
-                    {confirmed && (
-                      <div className="mt-4 flex justify-center border-t border-slate-100 pt-4">
-                        <TicketQr token={booking.qrToken} />
-                      </div>
-                    )}
+                <Perforation notchClass="bg-zinc-50" />
 
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                      <p className="font-mono text-xs text-slate-500">
-                        Ticket #{booking.id.slice(0, 8).toUpperCase()}
-                      </p>
-                      {confirmed && (
-                        <button
-                          type="button"
-                          onClick={() => cancel(booking)}
-                          disabled={cancellingId === booking.id}
-                          className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-                        >
-                          {cancellingId === booking.id ? "Cancelling..." : "Cancel booking"}
-                        </button>
-                      )}
-                    </div>
+                {confirmed && (
+                  <div className="flex justify-center px-6 pt-6">
+                    <TicketQr token={booking.qrToken} />
+                  </div>
+                )}
 
-                    {cancelError?.id === booking.id && (
-                      <p className="mt-2 text-sm text-red-600">{cancelError.message}</p>
-                    )}
-                  </Card>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+                <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                  <p className="font-mono text-xs text-zinc-400">#{booking.id.slice(0, 8).toUpperCase()}</p>
+                  {confirmed && (
+                    <button
+                      type="button"
+                      onClick={() => cancel(booking)}
+                      disabled={cancellingId === booking.id}
+                      className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {cancellingId === booking.id ? "Cancelling..." : "Cancel booking"}
+                    </button>
+                  )}
+                </div>
+
+                {cancelError?.id === booking.id && <p className="px-6 pb-4 text-sm text-red-600">{cancelError.message}</p>}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </main>
   );
 }

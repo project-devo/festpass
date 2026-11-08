@@ -6,5 +6,13 @@
 }
 
 body {
-  @apply bg-slate-50 font-sans text-slate-900 antialiased;
+  @apply bg-zinc-50 font-sans text-zinc-950 antialiased;
+}
+
+/* Faint square grid behind the landing hero */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(24 24 27 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(24 24 27 / 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
 }

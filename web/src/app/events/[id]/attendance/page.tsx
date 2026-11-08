@@ -6,7 +6,8 @@ import { useCallback, useEffect, useState } from "react";
 import { api, ApiError, type Attendance } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import { useSession } from "@/components/session";
-import { Card, PageState } from "@/components/ui";
+import { ArrowLeftIcon, ChartIcon } from "@/components/icons";
+import { Card, Notice, PageState } from "@/components/ui";
 
 const REFRESH_MS = 5000;
 
@@ -45,7 +46,7 @@ export default function AttendancePage() {
   // Load once, then every 5 seconds. Skip while the tab is hidden to save requests.
   useEffect(() => {
     if (!isOrganiser) return;
-        // load() only sets state after its await, so this is not the synchronous setState the rule fears
+    // load() only sets state after its await, so this is not the synchronous setState the rule fears
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
     const timer = setInterval(() => {
@@ -57,16 +58,17 @@ export default function AttendancePage() {
   if (sessionLoading) return <PageState loading />;
   if (!isOrganiser) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16 text-center">
-        <p className="font-medium text-slate-900">Only organisers can see attendance</p>
-        <p className="mt-1 text-sm text-slate-600">Log in with the organiser account to view this page.</p>
-      </main>
+      <Notice
+        icon={<ChartIcon className="size-5" />}
+        title="Only organisers can see attendance"
+        text="Log in with the organiser account to view this page."
+      />
     );
   }
 
   if (error || !data) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <main className="mx-auto max-w-3xl px-4 py-10">
         <PageState loading={!data} error={error} />
       </main>
     );
@@ -83,67 +85,84 @@ export default function AttendancePage() {
     return a.name.localeCompare(b.name);
   });
 
+  const notYet = booked - checkedIn;
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <Link href={`/events/${event.id}`} className="text-sm text-slate-600 hover:text-slate-900">
-        &larr; Back to event
+    <main className="mx-auto max-w-3xl px-4 py-10">
+      <Link href={`/events/${event.id}`} className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-950">
+        <ArrowLeftIcon /> Back to event
       </Link>
 
-      <Card className="mt-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-indigo-600">{formatDateTime(event.startsAt)}</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{event.title}</h1>
-        <p className="mt-1 text-sm text-slate-600">{event.venue}</p>
-
-        <div className="mt-6">
-          <div className="flex items-baseline justify-between">
-            <p className="text-3xl font-semibold tabular-nums text-slate-900">
-              {checkedIn}
-              <span className="text-lg font-normal text-slate-500"> / {booked} checked in</span>
-            </p>
-            <p className="text-sm font-medium tabular-nums text-slate-600">{percent}%</p>
-          </div>
-
-          <div
-            className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={booked}
-            aria-valuenow={checkedIn}
-            aria-label="Checked in out of booked"
-          >
-            <div className="h-full rounded-full bg-indigo-600 transition-all duration-500" style={{ width: `${percent}%` }} />
-          </div>
-
-          <p className="mt-2 text-xs text-slate-500" aria-live="polite">
-            {stale
-              ? "Can't reach the server, showing the last numbers. Retrying..."
-              : `Updates every 5 seconds${updatedAt ? `, last at ${timeOnly.format(updatedAt)}` : ""}`}
-          </p>
+      <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">{formatDateTime(event.startsAt)}</p>
+          <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-zinc-950 sm:text-3xl">{event.title}</h1>
+          <p className="mt-1 text-sm text-zinc-500">{event.venue}</p>
         </div>
+        <span
+          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
+            stale ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-700"
+          }`}
+        >
+          <span className={`size-1.5 rounded-full ${stale ? "bg-amber-500" : "animate-pulse bg-emerald-500"}`} />
+          {stale ? "Reconnecting" : "Live"}
+        </span>
+      </div>
+
+      <div className="mt-6 grid grid-cols-3 gap-3">
+        <Stat label="Booked" value={booked} />
+        <Stat label="Checked in" value={checkedIn} accent />
+        <Stat label="Not yet" value={notYet} />
+      </div>
+
+      <Card className="mt-3">
+        <div className="flex items-baseline justify-between">
+          <p className="text-sm font-medium text-zinc-950">Check-in progress</p>
+          <p className="text-sm font-semibold tabular-nums text-zinc-950">{percent}%</p>
+        </div>
+        <div
+          className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-zinc-100"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={booked}
+          aria-valuenow={checkedIn}
+          aria-label="Checked in out of booked"
+        >
+          <div className="h-full rounded-full bg-indigo-600 transition-all duration-500" style={{ width: `${percent}%` }} />
+        </div>
+        <p className="mt-3 text-xs text-zinc-500" aria-live="polite">
+          {stale
+            ? "Can't reach the server, showing the last numbers. Retrying..."
+            : `Updates every 5 seconds${updatedAt ? `, last at ${timeOnly.format(updatedAt)}` : ""}`}
+        </p>
       </Card>
 
-      <section className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm">
-        <h2 className="border-b border-slate-100 px-6 py-4 text-sm font-semibold text-slate-900">
-          Attendees ({booked})
-        </h2>
+      <section className="mt-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+        <h2 className="border-b border-zinc-200 px-6 py-4 text-sm font-semibold text-zinc-950">Attendees ({booked})</h2>
         {sorted.length === 0 ? (
-          <p className="px-6 py-8 text-center text-sm text-slate-600">No bookings for this event yet.</p>
+          <p className="px-6 py-8 text-center text-sm text-zinc-500">No bookings for this event yet.</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-zinc-100">
             {sorted.map((a) => (
-              <li key={a.bookingId} className="flex items-center justify-between gap-4 px-6 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-900">{a.name}</p>
-                  <p className="truncate text-xs text-slate-500">{a.email}</p>
+              <li key={a.bookingId} className="flex items-center gap-3 px-6 py-3">
+                <span
+                  aria-hidden
+                  className={`flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                    a.checkedInAt ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
+                  }`}
+                >
+                  {initials(a.name)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-zinc-950">{a.name}</p>
+                  <p className="truncate text-xs text-zinc-500">{a.email}</p>
                 </div>
                 {a.checkedInAt ? (
                   <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                     In at {timeOnly.format(new Date(a.checkedInAt))}
                   </span>
                 ) : (
-                  <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                    Not yet
-                  </span>
+                  <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-500">Not yet</span>
                 )}
               </li>
             ))}
@@ -152,4 +171,23 @@ export default function AttendancePage() {
       </section>
     </main>
   );
+}
+
+function Stat({ label, value, accent = false }: { label: string; value: number; accent?: boolean }) {
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-5">
+      <p className="text-xs font-medium text-zinc-500">{label}</p>
+      <p className={`mt-1 text-2xl font-semibold tabular-nums sm:text-3xl ${accent ? "text-indigo-600" : "text-zinc-950"}`}>{value}</p>
+    </div>
+  );
+}
+
+// "Aditi Sharma" -> "AS"
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join("");
 }

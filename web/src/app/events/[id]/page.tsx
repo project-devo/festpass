@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { api, ApiError, type FestEvent } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
-import { SeatsBadge } from "@/components/event-card";
+import { DateChip, SeatsBadge, SeatsMeter } from "@/components/event-card";
+import { ArrowLeftIcon, CalendarIcon, ChartIcon, PinIcon, UsersIcon } from "@/components/icons";
 import { useSession } from "@/components/session";
-import { Alert, Button, Card, PageState } from "@/components/ui";
+import { Alert, Button, Card, PageState, buttonClass } from "@/components/ui";
 
 export default function EventPage() {
   const { id } = useParams<{ id: string }>();
@@ -47,10 +48,7 @@ export default function EventPage() {
     if (sessionLoading) return null;
     if (!session) {
       return (
-        <Link
-          href="/login"
-          className="inline-flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 sm:w-auto"
-        >
+        <Link href="/login" className={buttonClass("primary", "w-full sm:w-auto")}>
           Log in to book
         </Link>
       );
@@ -58,16 +56,13 @@ export default function EventPage() {
     // The organiser who owns this event gets a link to the live attendance page
     if (session.role === "organiser" && session.sub === event?.organiserId) {
       return (
-        <Link
-          href={`/events/${id}/attendance`}
-          className="inline-flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-500 sm:w-auto"
-        >
-          View attendance
+        <Link href={`/events/${id}/attendance`} className={buttonClass("primary", "w-full sm:w-auto")}>
+          <ChartIcon /> View attendance
         </Link>
       );
     }
     if (session.role !== "student") {
-      return <p className="text-sm text-slate-600">Only students can book passes.</p>;
+      return <p className="text-sm text-zinc-500">Only students can book passes.</p>;
     }
     return (
       <Button onClick={() => void book()} loading={booking} disabled={soldOut} className="w-full sm:w-auto">
@@ -77,41 +72,55 @@ export default function EventPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <Link href="/" className="text-sm text-slate-600 hover:text-slate-900">
-        &larr; All events
+    <main className="mx-auto max-w-2xl px-4 py-10">
+      <Link href="/events" className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-950">
+        <ArrowLeftIcon /> All events
       </Link>
 
       {error || !event ? (
         <PageState loading={!event} error={error} />
       ) : (
-        <Card className="mt-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-indigo-600">
-            {formatDateTime(event.startsAt)}
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">{event.title}</h1>
-
-          <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="text-slate-500">Venue</dt>
-              <dd className="mt-0.5 font-medium">{event.venue}</dd>
+        <Card bare className="mt-4 overflow-hidden">
+          <div className="p-6 sm:p-8">
+            <div className="flex items-start gap-5">
+              <DateChip iso={event.startsAt} large />
+              <div className="min-w-0 pt-1">
+                <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 sm:text-3xl">{event.title}</h1>
+                <div className="mt-2">
+                  <SeatsBadge seatsLeft={event.seatsLeft} capacity={event.capacity} />
+                </div>
+              </div>
             </div>
-            <div>
-              <dt className="text-slate-500">Capacity</dt>
-              <dd className="mt-0.5 font-medium">{event.capacity} seats</dd>
-            </div>
-          </dl>
 
-          <div className="mt-4">
-            <SeatsBadge seatsLeft={event.seatsLeft} capacity={event.capacity} />
+            <dl className="mt-8 grid gap-4 sm:grid-cols-3">
+              <Detail icon={<CalendarIcon />} label="When" value={formatDateTime(event.startsAt)} />
+              <Detail icon={<PinIcon />} label="Venue" value={event.venue} />
+              <Detail icon={<UsersIcon />} label="Capacity" value={`${event.capacity} seats`} />
+            </dl>
+
+            <div className="mt-8">
+              <SeatsMeter seatsLeft={event.seatsLeft} capacity={event.capacity} />
+            </div>
           </div>
 
-          <div className="mt-6 space-y-3 border-t border-slate-100 pt-6">
+          <div className="space-y-3 border-t border-zinc-200 bg-zinc-50 px-6 py-5 sm:px-8">
             {bookError && <Alert>{bookError}</Alert>}
             {bookingArea()}
           </div>
         </Card>
       )}
     </main>
+  );
+}
+
+function Detail({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex gap-3">
+      <span className="mt-0.5 text-zinc-400">{icon}</span>
+      <div>
+        <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">{label}</dt>
+        <dd className="mt-0.5 text-sm font-medium text-zinc-950">{value}</dd>
+      </div>
+    </div>
   );
 }

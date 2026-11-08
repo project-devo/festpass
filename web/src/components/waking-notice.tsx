@@ -12,7 +12,7 @@ export function WakingNotice() {
   return (
     <div
       role="status"
-      className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-sm rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-lg"
+      className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-sm rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 shadow-lg backdrop-blur"
     >
       <p className="flex items-center gap-2 text-sm font-medium text-amber-900">
         <span className="size-3 shrink-0 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" />

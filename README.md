@@ -22,6 +22,8 @@ Ticket emails in the demo all go to one inbox (Resend's free tier only delivers 
 
 ## Screenshots
 
+![Landing page](docs/screenshots/landing.png)
+
 ![Events page](docs/screenshots/events.png)
 
 | QR ticket (phone) | Gate scanner (phone) |

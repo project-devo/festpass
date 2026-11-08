@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import type { Html5Qrcode } from "html5-qrcode";
 import { api, ApiError } from "@/lib/api";
 import { useSession } from "@/components/session";
-import { PageState } from "@/components/ui";
+import { ScanIcon } from "@/components/icons";
+import { Notice, PageHeader, PageState, buttonClass } from "@/components/ui";
 
 type ScanResult = { ok: boolean; title: string; studentName?: string; eventTitle?: string };
 
@@ -99,24 +100,26 @@ export default function ScanPage() {
 
   if (!isVolunteer) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16 text-center">
-        <p className="font-medium text-slate-900">Only volunteers can scan tickets</p>
-        <p className="mt-1 text-sm text-slate-600">Log in with a volunteer account, for example volunteer1@festpass.test.</p>
-        <Link href="/login" className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">
-          Log in
-        </Link>
-      </main>
+      <Notice
+        icon={<ScanIcon className="size-5" />}
+        title="Only volunteers can scan tickets"
+        text="Log in with a volunteer account, for example volunteer1@festpass.test."
+        action={
+          <Link href="/login" className={buttonClass("primary")}>
+            Log in
+          </Link>
+        }
+      />
     );
   }
 
   return (
-    <main className="mx-auto max-w-md px-4 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Scan tickets</h1>
-      <p className="mt-1 text-sm text-slate-600">Point the back camera at the QR code on a student&apos;s ticket.</p>
+    <main className="mx-auto max-w-md px-4 py-10">
+      <PageHeader title="Scan tickets" subtitle="Point the back camera at the QR code on a student's ticket." />
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-lg">
         {cameraError ? (
-          <p role="alert" className="p-6 text-sm text-red-700">
+          <p role="alert" className="p-6 text-sm text-red-300">
             {cameraError}
           </p>
         ) : (
@@ -124,9 +127,16 @@ export default function ScanPage() {
         )}
       </div>
 
-      <p className="mt-4 text-center text-sm text-slate-600">
-        Checked in on this device: <span className="font-medium text-slate-900">{checkedIn}</span>
-      </p>
+      <div className="mt-4 flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-5 py-4">
+        <span className="flex items-center gap-2 text-sm text-zinc-600">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+          </span>
+          Checked in on this device
+        </span>
+        <span className="text-2xl font-semibold tabular-nums text-zinc-950">{checkedIn}</span>
+      </div>
 
       {result && <ResultScreen result={result} />}
     </main>

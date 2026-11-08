@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { useSession } from "@/components/session";
+import { Logo } from "@/components/icons";
 import { Alert, Button, Card, Input } from "@/components/ui";
 
 export default function RegisterPage() {
@@ -22,7 +23,7 @@ export default function RegisterPage() {
     try {
       await api.register(name, email, password);
       await refresh();
-      router.push("/");
+      router.push("/events");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
       setLoading(false);
@@ -30,11 +31,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-sm px-4 py-16">
-      <h1 className="text-center text-2xl font-semibold tracking-tight">Create your account</h1>
-      <p className="mt-1 text-center text-sm text-slate-600">New accounts are student accounts.</p>
+    <main className="mx-auto w-full max-w-md px-4 py-14">
+      <div className="flex flex-col items-center text-center">
+        <Logo className="size-10" />
+        <h1 className="mt-5 text-2xl font-semibold tracking-tight">Create your account</h1>
+        <p className="mt-1 text-sm text-zinc-500">New accounts are student accounts.</p>
+      </div>
 
-      <Card className="mt-6">
+      <Card className="mt-8">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -80,7 +84,7 @@ export default function RegisterPage() {
         </form>
       </Card>
 
-      <p className="mt-4 text-center text-sm text-slate-600">
+      <p className="mt-8 text-center text-sm text-zinc-500">
         Already have an account?{" "}
         <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
           Log in

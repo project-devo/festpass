@@ -31,7 +31,7 @@ export function TicketQr({ token, size = 200 }: { token: string; size?: number }
   }
 
   if (!src) {
-    return <div className="animate-pulse rounded-lg bg-slate-100" style={{ width: size, height: size }} />;
+    return <div className="animate-pulse rounded-lg bg-zinc-100" style={{ width: size, height: size }} />;
   }
 
   // A plain img on purpose: src is a data: URL, so there is nothing for next/image to optimise

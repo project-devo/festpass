@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { useSession } from "@/components/session";
-import { Alert, Button, Card, Input, PageState } from "@/components/ui";
+import { CalendarIcon } from "@/components/icons";
+import { Alert, Button, Card, Input, Notice, PageHeader, PageState, buttonClass } from "@/components/ui";
 
 type FieldErrors = Partial<Record<"title" | "venue" | "startsAt" | "capacity", string[]>>;
 
@@ -44,24 +45,24 @@ export default function NewEventPage() {
 
   if (session?.role !== "organiser") {
     return (
-      <main className="mx-auto max-w-md px-4 py-16 text-center">
-        <p className="font-medium text-slate-900">Only organisers can create events</p>
-        <p className="mt-1 text-sm text-slate-600">
-          {session ? "Your account can't create events." : "Log in with an organiser account to continue."}
-        </p>
-        <Link href={session ? "/" : "/login"} className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">
-          {session ? "Back to events" : "Log in"}
-        </Link>
-      </main>
+      <Notice
+        icon={<CalendarIcon className="size-5" />}
+        title="Only organisers can create events"
+        text={session ? "Your account can't create events." : "Log in with an organiser account to continue."}
+        action={
+          <Link href={session ? "/events" : "/login"} className={buttonClass("primary")}>
+            {session ? "Back to events" : "Log in"}
+          </Link>
+        }
+      />
     );
   }
 
   return (
-    <main className="mx-auto w-full max-w-lg px-4 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Create an event</h1>
-      <p className="mt-1 text-sm text-slate-600">Students can book it as soon as you save it.</p>
+    <main className="mx-auto w-full max-w-lg px-4 py-10">
+      <PageHeader title="Create an event" subtitle="Students can book it as soon as you save it." />
 
-      <Card className="mt-6">
+      <Card>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -116,7 +117,7 @@ export default function NewEventPage() {
             />
           </div>
           <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-            <Button type="button" variant="secondary" onClick={() => router.push("/")}>
+            <Button type="button" variant="secondary" onClick={() => router.push("/events")}>
               Cancel
             </Button>
             <Button type="submit" loading={saving}>

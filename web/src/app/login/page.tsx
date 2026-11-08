@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { useSession } from "@/components/session";
+import { ChartIcon, Logo, ScanIcon, TicketIcon } from "@/components/icons";
 import { Alert, Button, Card, Input } from "@/components/ui";
 
 // Goal 15: the seeded demo accounts, so a visitor can try every role with one click
 const DEMO_LOGINS = [
-  { role: "Student", hint: "Book a pass, see your QR ticket", email: "student1@festpass.test", password: "student123" },
-  { role: "Volunteer", hint: "Scan tickets at the gate", email: "volunteer1@festpass.test", password: "volunteer123" },
-  { role: "Organiser", hint: "Create events, watch attendance", email: "organiser@festpass.test", password: "organiser123" },
+  { role: "Student", icon: TicketIcon, hint: "Book a pass, see your QR ticket", email: "student1@festpass.test", password: "student123" },
+  { role: "Volunteer", icon: ScanIcon, hint: "Scan tickets at the gate", email: "volunteer1@festpass.test", password: "volunteer123" },
+  { role: "Organiser", icon: ChartIcon, hint: "Create events, watch attendance", email: "organiser@festpass.test", password: "organiser123" },
 ];
 
 export default function LoginPage() {
@@ -29,7 +30,7 @@ export default function LoginPage() {
     try {
       await api.login(loginEmail, loginPassword);
       await refresh();
-      router.push("/");
+      router.push("/events");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
       setLoading(false);
@@ -43,11 +44,14 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-sm px-4 py-16">
-      <h1 className="text-center text-2xl font-semibold tracking-tight">Log in to FestPass</h1>
-      <p className="mt-1 text-center text-sm text-slate-600">Book passes and see your tickets.</p>
+    <main className="mx-auto w-full max-w-md px-4 py-14">
+      <div className="flex flex-col items-center text-center">
+        <Logo className="size-10" />
+        <h1 className="mt-5 text-2xl font-semibold tracking-tight">Log in to FestPass</h1>
+        <p className="mt-1 text-sm text-zinc-500">Book passes and see your tickets.</p>
+      </div>
 
-      <Card className="mt-6">
+      <Card className="mt-8">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -80,32 +84,40 @@ export default function LoginPage() {
         </form>
       </Card>
 
-      <Card className="mt-4">
-        <h2 className="text-sm font-semibold text-slate-900">Try a demo account</h2>
-        <p className="mt-1 text-xs text-slate-600">One click logs you in. Each role sees a different part of the app.</p>
-        <div className="mt-4 space-y-2">
-          {DEMO_LOGINS.map((demo) => (
-            <button
-              key={demo.role}
-              type="button"
-              disabled={loading}
-              onClick={() => loginAsDemo(demo)}
-              className={
-                "block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-left transition " +
-                "hover:border-indigo-300 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
-              }
-            >
-              <span className="block text-sm font-medium text-slate-900">{demo.role}</span>
-              <span className="block text-xs text-slate-600">{demo.hint}</span>
-              <span className="mt-1 block break-all font-mono text-xs text-slate-500">
+      <div className="mt-8 flex items-center gap-3 text-xs font-medium uppercase tracking-wider text-zinc-400">
+        <span className="h-px flex-1 bg-zinc-200" />
+        or try a demo account
+        <span className="h-px flex-1 bg-zinc-200" />
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {DEMO_LOGINS.map((demo) => (
+          <button
+            key={demo.role}
+            type="button"
+            disabled={loading}
+            onClick={() => loginAsDemo(demo)}
+            className={
+              "group flex w-full items-center gap-4 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-left transition " +
+              "hover:border-indigo-300 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 " +
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            }
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white">
+              <demo.icon className="size-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-zinc-950">{demo.role}</span>
+              <span className="block text-xs text-zinc-500">{demo.hint}</span>
+              <span className="mt-0.5 block break-all font-mono text-[11px] text-zinc-400">
                 {demo.email} / {demo.password}
               </span>
-            </button>
-          ))}
-        </div>
-      </Card>
+            </span>
+          </button>
+        ))}
+      </div>
 
-      <p className="mt-4 text-center text-sm text-slate-600">
+      <p className="mt-8 text-center text-sm text-zinc-500">
         New here?{" "}
         <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
           Create an account
